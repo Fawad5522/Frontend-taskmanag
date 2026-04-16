@@ -1,38 +1,138 @@
-.App {
+/* App.css - Yeh hamari website ka Makeup (Design) hai */
+
+body {
+  background-color: #e2e8f0; /* Halka grey background */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+.app-container {
+  max-width: 650px;
+  margin: 40px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Khoobsurat 3D shadow */
+}
+
+.title {
   text-align: center;
+  color: #1e293b;
+  font-size: 32px;
+  margin-bottom: 30px;
+  font-weight: bold;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.task-form {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.input-field {
+  padding: 12px 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: 0.3s;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.input-field:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3); /* Click karne par glow karega */
+}
+
+/* --- Buttons Design --- */
+.btn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+  transform: translateY(-2px); /* Hover karne par button thora oopar uthega */
+}
+
+.btn-add { background-color: #10b981; }
+.btn-add:hover { background-color: #059669; }
+
+.btn-update { background-color: #f59e0b; color: black; }
+.btn-update:hover { background-color: #d97706; }
+
+.btn-done { background-color: #3b82f6; }
+.btn-done:hover { background-color: #2563eb; }
+
+.btn-edit { background-color: #8b5cf6; }
+.btn-edit:hover { background-color: #7c3aed; }
+
+.btn-delete { background-color: #ef4444; }
+.btn-delete:hover { background-color: #dc2626; }
+
+/* --- Task List Card Design --- */
+.task-list {
+  list-style: none;
+  padding: 0;
+}
+
+.task-card {
+  background: #f8fafc;
+  padding: 18px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.3s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border-left: 6px solid #cbd5e1;
+}
+
+.task-card:hover {
+  transform: scale(1.02); /* Hover karne par card thora zoom hoga */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.task-pending { border-left-color: #f59e0b; } /* Pending ke liye orange patti */
+.task-completed { border-left-color: #10b981; opacity: 0.7; } /* Complete ke liye green patti */
+
+.text-completed {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* --- Loader Design --- */
+.loader-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  margin-top: 40px;
+  color: #64748b;
+  font-weight: bold;
 }
 
-.App-link {
-  color: #61dafb;
+.spinner {
+  width: 45px;
+  height: 45px;
+  border: 5px solid #e2e8f0;
+  border-top: 5px solid #3b82f6; 
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
