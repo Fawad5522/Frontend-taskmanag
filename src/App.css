@@ -136,3 +136,63 @@ body {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+
+.btn-recycle { 
+  background-color: #6366f1; 
+  padding: 10px 25px;
+  font-size: 12px;
+}
+
+.btn-recycle:hover { 
+  background-color: #4f46e5; 
+}
+
+.btn-recover { 
+  background-color: #06b6d4; 
+}
+
+.btn-recover:hover { 
+  background-color: #0891b2; 
+}
+
+.task-deleted {
+  border-left-color: #ef4444;
+  background-color: #fef2f2;
+  opacity: 0.85;
+}
+
+.recycle-bin {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f8fafc;
+  border-radius: 10px;
+  border: 2px dashed #cbd5e1;
+}
+
+.recycle-bin h2 {
+  color: #1e293b;
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.recycle-bin p {
+  text-align: center;
+  color: #64748b;
+  font-size: 16px;
+}
+
+.btn-back {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-back:hover {
+  background-color: #5a6268;
+}
