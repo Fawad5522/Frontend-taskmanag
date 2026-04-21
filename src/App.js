@@ -11,13 +11,19 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [showRecycleBin, setShowRecycleBin] = useState(false);
 
+  // 1. UPDATE: Ab hum Active aur Trashed (Deleted) dono lists API se mangwayenge
   const fetchTasks = async () => {
     setIsLoading(true);
     try {
+      // Active tasks mangwao
       const response = await axios.get('http://127.0.0.1:8000/api/tasks');
       setTasks(response.data);
+
+      // Deleted tasks mangwao (Recycle Bin ke liye)
+      const trashedResponse = await axios.get('http://127.0.0.1:8000/api/tasks/trashed');
+      setDeletedTasks(trashedResponse.data);
     } catch (error) {
-      console.error("Data nahi aya:", error);
+      console.error("Data not recieved:", error);
     } finally {
       setIsLoading(false);
     }
@@ -54,35 +60,34 @@ function App() {
     setEditingId(task.id);
   };
 
+  // 2. UPDATE: Ab manual filter nahi, seedha API call aur refresh
   const handleDelete = async (id) => {
     try {
-      const taskToDelete = tasks.find(task => task.id === id);
-      setDeletedTasks([...deletedTasks, taskToDelete]);
-      
       await axios.delete(`http://127.0.0.1:8000/api/tasks/${id}`);
-      fetchTasks();
+      fetchTasks(); // Data refresh ho kar khud recycle bin mein chala jayega
     } catch (error) {
       console.error("Not Deleted:", error);
     }
   };
 
+  // 3. UPDATE: Naya POST karne ki bajaye 'restore' ki API call karein
   const handleRecover = async (task) => {
     try {
-      await axios.post('http://127.0.0.1:8000/api/tasks', {
-        title: task.title, 
-        description: task.description, 
-        status: 'pending'
-      });
-      
-      setDeletedTasks(deletedTasks.filter(t => t.id !== task.id));
+      await axios.put(`http://127.0.0.1:8000/api/tasks/${task.id}/restore`);
       fetchTasks();
     } catch (error) {
       console.error("Not Recovered:", error);
     }
   };
 
-  const handlePermanentDelete = (id) => {
-    setDeletedTasks(deletedTasks.filter(task => task.id !== id));
+  // 4. UPDATE: Local memory se nahi, hamesha ke liye Database se delete karein
+  const handlePermanentDelete = async (id) => {
+    try {
+      await axios.delete(`http://127.0.0.1:8000/api/tasks/${id}/force`);
+      fetchTasks();
+    } catch (error) {
+      console.error("Not delete Permanently :", error);
+    }
   };
 
   const handleComplete = async (task) => {
@@ -96,15 +101,11 @@ function App() {
     }
   };
 
- // ...existing code...
-
   return (
     <div className="app-container">
       
       <div className="header-section">
         <h1 className="title">Simple Task Manager📝</h1>
-
-
       </div>
 
       {!showRecycleBin ? (
@@ -132,10 +133,11 @@ function App() {
             </button>
 
             <button 
-          onClick={() => setShowRecycleBin(!showRecycleBin)}
-          className="btn btn-recycle">
-          🗑️ Recycle Bin ({deletedTasks.length})
-        </button>
+              type="button" // Type button dena zaroori hai taake form submit na ho
+              onClick={() => setShowRecycleBin(!showRecycleBin)}
+              className="btn btn-recycle">
+              🗑️ Recycle Bin ({deletedTasks.length})
+            </button>
           </form>
 
           {isLoading ? (
@@ -170,33 +172,34 @@ function App() {
         </>
       ) : (
         <div className="recycle-bin">
-  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-    <button 
-      onClick={() => setShowRecycleBin(false)} 
-      className="btn btn-back">
-      ← Back
-    </button>
-    <h2 style={{ margin: 0 }}>Recycle Bin</h2>
-  </div>
-  {deletedTasks.length === 0 ? (
-    <p>No deleted tasks</p>
-  ) : (
-    <ul className="task-list">
-      {deletedTasks.map(task => (
-        <li key={task.id} className="task-card task-deleted">
-          <div>
-            <strong style={{ fontSize: '18px' }}>{task.title}</strong> <br/>
-            <span style={{ fontSize: '14px', marginTop: '5px', display: 'block' }}>{task.description}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <button 
+              onClick={() => setShowRecycleBin(false)} 
+              className="btn btn-back">
+              ← Back
+            </button>
+            <h2 style={{ margin: 0 }}>Recycle Bin</h2>
           </div>
-          <div className="action-buttons">
-            <button onClick={() => handleRecover(task)} className="btn btn-recover">♻️ Recover</button>
-            <button onClick={() => handlePermanentDelete(task.id)} className="btn btn-delete">🗑️ Permanent Delete</button>
-          </div>
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
+          
+          {deletedTasks.length === 0 ? (
+            <p>No deleted tasks</p>
+          ) : (
+            <ul className="task-list">
+              {deletedTasks.map(task => (
+                <li key={task.id} className="task-card task-deleted">
+                  <div>
+                    <strong style={{ fontSize: '18px' }}>{task.title}</strong> <br/>
+                    <span style={{ fontSize: '14px', marginTop: '5px', display: 'block' }}>{task.description}</span>
+                  </div>
+                  <div className="action-buttons">
+                    <button onClick={() => handleRecover(task)} className="btn btn-recover">♻️ Recover</button>
+                    <button onClick={() => handlePermanentDelete(task.id)} className="btn btn-delete">🗑️ Permanent Delete</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
 
     </div>
