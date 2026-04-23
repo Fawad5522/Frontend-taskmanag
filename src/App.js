@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
+
 function App() {
   const [tasks, setTasks] = useState([]);
   const [deletedTasks, setDeletedTasks] = useState([]);
@@ -10,12 +11,17 @@ function App() {
   const [editingId, setEditingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showRecycleBin, setShowRecycleBin] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  // 1. UPDATE: Ab hum Active aur Trashed (Deleted) dono lists API se mangwayenge
+  // 1. UPDATE: Now we will fetch both active and deleted tasks from the backend,
+  //  instead of relying on local state manipulation.
+  //  This ensures that our UI is always in sync with the database, 
+  // and we can leverage the backend's capabilities for handling soft deletes and restores.
+
   const fetchTasks = async () => {
     setIsLoading(true);
     try {
-      // Active tasks mangwao
+      // Getting Active tasks 
       const response = await axios.get('http://127.0.0.1:8000/api/tasks');
       setTasks(response.data);
 
@@ -33,8 +39,11 @@ function App() {
     fetchTasks();
   }, []);
 
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
+    setErrors({}); // Clear previous errors
+
     try {
       if (editingId) {
         await axios.put(`http://127.0.0.1:8000/api/tasks/${editingId}`, {
@@ -50,7 +59,12 @@ function App() {
       setDescription('');
       fetchTasks();
     } catch (error) {
-      console.error("Not Saved or Updated:", error);
+
+      if (error.response && error.response.status === 422) {    // catch error response from backend, especially validation errors (422)
+        setErrors(error.response.data.errors);  //Save errors in state to show in UI
+      } else {
+        console.error("Unexpected error occurred:", error);
+      }
     }
   };
 
@@ -60,7 +74,7 @@ function App() {
     setEditingId(task.id);
   };
 
-  // 2. UPDATE: Ab manual filter nahi, seedha API call aur refresh
+  // now instead of just removing the task from local state, we will call the delete API which will soft delete the task in the backend. This way, the task will be moved to the recycle bin (trashed tasks) and can be recovered later if needed.
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/api/tasks/${id}`);
@@ -103,7 +117,7 @@ function App() {
 
   return (
     <div className="app-container">
-      
+
       <div className="header-section">
         <h1 className="title">Simple Task Manager📝</h1>
       </div>
@@ -111,28 +125,39 @@ function App() {
       {!showRecycleBin ? (
         <>
           <form onSubmit={handleSubmit} className="task-form">
-            <input
-              type="text"
-              className="input-field"
-              style={{ flex: 1 }}
-              placeholder=" Task Name "
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-            <input
-              type="text"
-              className="input-field"
-              style={{ flex: 2 }}
-              placeholder=" Description "
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <input
+                type="text"
+                className="input-field"
+                placeholder=" Task Name "
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setErrors({ ...errors, title: null }); // Clear title errors on change, so that red border and error message disappear as soon as user starts fixing the input
+                }}
+
+                // if there is an error for title, show red border
+                style={{ borderColor: errors.title ? 'red' : '' }}
+              />
+              {/* if there is an error for title, show it below the input */}
+              {errors.title && <span style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{errors.title[0]}</span>}
+            </div>
+
+            <div style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
+              <input
+                type="text"
+                className="input-field"
+                placeholder=" Description "
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+
             <button type="submit" className={editingId ? 'btn btn-update' : 'btn btn-add'}>
               {editingId ? 'Update Task' : 'Add Task'}
             </button>
 
-            <button 
+            <button
               type="button" // Type button dena zaroori hai taake form submit na ho
               onClick={() => setShowRecycleBin(!showRecycleBin)}
               className="btn btn-recycle">
@@ -149,12 +174,12 @@ function App() {
             <ul className="task-list">
               {tasks.map(task => (
                 <li key={task.id} className={`task-card ${task.status === 'pending' ? 'task-pending' : 'task-completed'}`}>
-                  
+
                   <div className={task.status === 'completed' ? 'text-completed' : ''}>
-                    <strong style={{ fontSize: '18px' }}>{task.title}</strong> <br/>
+                    <strong style={{ fontSize: '18px' }}>{task.title}</strong> <br />
                     <span style={{ fontSize: '14px', marginTop: '5px', display: 'block' }}>{task.description}</span>
                   </div>
-                  
+
                   <div className="action-buttons">
                     {task.status === 'pending' && (
                       <>
@@ -173,14 +198,14 @@ function App() {
       ) : (
         <div className="recycle-bin">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-            <button 
-              onClick={() => setShowRecycleBin(false)} 
+            <button
+              onClick={() => setShowRecycleBin(false)}
               className="btn btn-back">
               ← Back
             </button>
             <h2 style={{ margin: 0 }}>Recycle Bin</h2>
           </div>
-          
+
           {deletedTasks.length === 0 ? (
             <p>No deleted tasks</p>
           ) : (
@@ -188,7 +213,7 @@ function App() {
               {deletedTasks.map(task => (
                 <li key={task.id} className="task-card task-deleted">
                   <div>
-                    <strong style={{ fontSize: '18px' }}>{task.title}</strong> <br/>
+                    <strong style={{ fontSize: '18px' }}>{task.title}</strong> <br />
                     <span style={{ fontSize: '14px', marginTop: '5px', display: 'block' }}>{task.description}</span>
                   </div>
                   <div className="action-buttons">
